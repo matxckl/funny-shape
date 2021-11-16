@@ -1,0 +1,87 @@
+# This is a sample Python script.
+
+# Press Shift+F10 to execute it or replace it with your code.
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+
+import cv2 as cv
+import numpy as np
+import sys
+import math
+
+# clear img size
+img_size_x = 1024
+img_size_y = 768
+#
+# drawing params]
+steps_x = 10000
+
+draw_start_x = -3
+draw_size_x = 512
+draw_center_x = 512
+draw_center_y = 0
+slope_factor_y = 256
+range_x_coeff = 256
+window_name = "experiment"
+trackbar_draw_x_value = "draw_size_x"
+slope_factor_y_value = "slope_factor_y"
+trackbar_draw_x_center_value = "draw_size_center_x"
+trackbar_draw_y_center_value = "draw_size_center_y"
+# img = cv.imread('/home/piasekm/imgs/starry_night.jpg')
+
+img = np.zeros((img_size_y, img_size_x, 3), np.uint8)
+
+if img is None:
+    sys.exit("Could not read the image.")
+
+print(img.shape)
+
+
+def draw_x_callback(*args):
+    global range_x_coeff
+    range_x_coeff = args[0] / 10
+    draw_shape()
+
+
+def draw_x_center_callback(*args):
+    global draw_center_x
+    draw_center_x = args[0]
+    draw_shape()
+
+
+def slope_factor_y_callback(*args):
+    global slope_factor_y
+    slope_factor_y = args[0]
+    draw_shape()
+
+
+def draw_y_center_callback(*args):
+    global draw_center_y
+    draw_center_y = args[0]
+    draw_shape()
+
+
+def draw_shape():
+    step_size_x = (draw_size_x - 1) / steps_x
+    x = draw_start_x
+    for i in range(steps_x):
+        x = x + step_size_x
+
+        y_overflow = draw_center_y + int(slope_factor_y * abs(x) - 1)
+
+        y_c = draw_center_y + int(abs(math.sin(x)) + slope_factor_y * math.exp(-x ** 100) * math.cos(x))
+        y_good = min(img_size_y - 1, y_c)
+
+        img[y_good, i, 0] = 255
+        img[y_good, i, 1] = 255
+        img[y_good, i, 2] = 255
+    cv.imshow(window_name, img)
+
+
+cv.namedWindow(window_name, cv.WINDOW_AUTOSIZE)
+cv.createTrackbar(trackbar_draw_x_value, window_name, draw_size_x, 10000, draw_x_callback)
+cv.createTrackbar(slope_factor_y_value, window_name, slope_factor_y, 10000, slope_factor_y_callback)
+cv.createTrackbar(trackbar_draw_x_center_value, window_name, draw_center_x, img_size_x, draw_x_center_callback)
+cv.createTrackbar(trackbar_draw_y_center_value, window_name, draw_center_y, img_size_x, draw_y_center_callback)
+cv.imshow(window_name, img)
+c = cv.waitKey(0)
